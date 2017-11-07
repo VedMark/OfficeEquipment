@@ -1,11 +1,12 @@
 #!/usr/bin/python2.7
-import sys
+
 import re
 import MySQLdb as mysql
-from PyQt5.QtCore import QDate
 
+from PyQt5.QtCore import QDate, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QLineEdit, QLabel, \
-    QPushButton, QMessageBox, QVBoxLayout, QDateEdit
+    QPushButton, QMessageBox, QVBoxLayout, QDateEdit, QComboBox, QHBoxLayout
+
 from DBConnection import Connection
 
 
@@ -14,128 +15,128 @@ class Widget(QWidget):
         super(Widget, self).__init__(parent)
         self._initUI()
         self.controller = _Controller(self)
+        self.requireDepartments.emit()
+
+    _requireDepartments = pyqtSignal(name='requireDepartments')
+    _requireRooms = pyqtSignal(str, name='requireRooms')
+
+    def refresh(self):
+        self.requireDepartments.emit()
+        self.idEdit.setFocus()
+
+    def setDepartments(self, array):
+        self.departmentCmb.clear()
+        self.departmentCmb.addItems(array)
+        self.requireRooms.emit(self.department)
+
+    def setRooms(self, array):
+        self.roomsCmb.clear()
+        self.roomsCmb.addItems(array)
 
     def _initUI(self):
-        self.__idLabel = QLabel('Id')
-        self.__nameLabel = QLabel('Name')
-        self.__modelLabel = QLabel('Model')
-        self.__costLabel = QLabel('Cost')
-        self.__purchaseDateLabel = QLabel('Purchase date')
-        self.__departmentLabel = QLabel('Department')
-        self.__roomLabel = QLabel('Room')
-        self.__receiveDateLabel = QLabel('Receive date')
+        self.idLabel = QLabel('Id')
+        self.nameLabel = QLabel('Name')
+        self.modelLabel = QLabel('Model')
+        self.costLabel = QLabel('Cost')
+        self.purchaseDateLabel = QLabel('Purchase date')
+        self.departmentLabel = QLabel('Department')
+        self.roomLabel = QLabel('Room')
 
-        self.__idEdit = QLineEdit()
-        self.__idEdit.setPlaceholderText('Use for editing/removing operations')
-        self.__nameEdit = QLineEdit()
-        self.__modelEdit = QLineEdit()
-        self.__costEdit = QLineEdit()
-        self.__purchaseDate = QDateEdit()
-        self.__purchaseDate.setDisplayFormat('dd.MM.yyyy')
-        self.__purchaseDate.setCalendarPopup(True)
-        self.__purchaseDate.setDate(QDate.currentDate())
-        self.__purchaseDate.setMinimumDate(QDate(1900, 1, 1))
-        self.__purchaseDate.setMaximumDate(QDate(2099, 31, 12))
-        self.__departmentEdit = QLineEdit()
-        self.__roomEdit = QLineEdit()
-        self.__receiveDate = QDateEdit()
-        self.__receiveDate.setDisplayFormat('dd.MM.yyyy')
-        self.__receiveDate.setCalendarPopup(True)
-        self.__receiveDate.setDate(QDate.currentDate())
-        self.__receiveDate.setMinimumDate(QDate(1900, 1, 1))
-        self.__receiveDate.setMaximumDate(QDate(2099, 31, 12))
+
+        self.idEdit = QLineEdit()
+        self.idEdit.setPlaceholderText('Use for editing/removing operations')
+        self.nameEdit = QLineEdit()
+        self.modelEdit = QLineEdit()
+        self.costEdit = QLineEdit()
+        self.purchaseDateEdit = QDateEdit()
+        self.purchaseDateEdit.setDisplayFormat('dd.MM.yyyy')
+        self.purchaseDateEdit.setCalendarPopup(True)
+        self.purchaseDateEdit.setDate(QDate.currentDate())
+        self.purchaseDateEdit.setMinimumDate(QDate(1900, 1, 1))
+        self.purchaseDateEdit.setMaximumDate(QDate(2099, 31, 12))
+        self.departmentCmb = QComboBox()
+        self.roomsCmb = QComboBox()
 
         self.submitButton = QPushButton('Submit')
         self.editButton = QPushButton('Edit')
         self.removeButton = QPushButton('Remove')
 
         layout = QVBoxLayout()
-        layout.addWidget(self.__idLabel)
-        layout.addWidget(self.__idEdit)
+        layout.addWidget(self.idLabel)
+        layout.addWidget(self.idEdit)
         layout.addSpacing(20)
-        layout.addWidget(self.__nameLabel)
-        layout.addWidget(self.__nameEdit)
+        layout.addWidget(self.nameLabel)
+        layout.addWidget(self.nameEdit)
         layout.addSpacing(10)
-        layout.addWidget(self.__modelLabel)
-        layout.addWidget(self.__modelEdit)
+        layout.addWidget(self.modelLabel)
+        layout.addWidget(self.modelEdit)
         layout.addSpacing(10)
-        layout.addWidget(self.__costLabel)
-        layout.addWidget(self.__costEdit)
+        layout.addWidget(self.costLabel)
+        layout.addWidget(self.costEdit)
         layout.addSpacing(10)
-        layout.addWidget(self.__purchaseDateLabel)
-        layout.addWidget(self.__purchaseDate)
+        layout.addWidget(self.purchaseDateLabel)
+        layout.addWidget(self.purchaseDateEdit)
         layout.addSpacing(10)
-        layout.addWidget(self.__departmentLabel)
-        layout.addWidget(self.__departmentEdit)
+        layout.addWidget(self.departmentLabel)
+        layout.addWidget(self.departmentCmb)
         layout.addSpacing(10)
-        layout.addWidget(self.__roomLabel)
-        layout.addWidget(self.__roomEdit)
-        layout.addSpacing(10)
-        layout.addWidget(self.__receiveDateLabel)
-        layout.addWidget(self.__receiveDate)
+        layout.addWidget(self.roomLabel)
+        layout.addWidget(self.roomsCmb)
         layout.addStretch(2)
         layout.addWidget(self.submitButton)
         layout.addWidget(self.editButton)
         layout.addWidget(self.removeButton)
 
-        self.setLayout(layout)
-        self.__nameEdit.setFocus()
+        hlayout = QHBoxLayout()
+        hlayout.addStretch()
+        hlayout.addLayout(layout)
+        hlayout.addStretch()
+
+        self.setLayout(hlayout)
 
     @property
     def id(self):
-        return self.__idEdit.text()
+        return self.idEdit.text()
 
     @id.setter
     def id(self, value):
-        self.__idEdit.setText(value)
+        self.idEdit.setText(value)
 
     @property
     def name(self):
-        return self.__nameEdit.text()
+        return self.nameEdit.text()
 
     @name.setter
     def name(self, value):
-        self.__nameEdit.setText(value)
+        self.nameEdit.setText(value)
 
     @property
     def model(self):
-        return self.__modelEdit.text()
+        return self.modelEdit.text()
 
     @model.setter
     def model(self, value):
-        self.__modelEdit.setText(value)
+        self.modelEdit.setText(value)
 
     @property
     def cost(self):
-        return self.__costEdit.text()
+        return self.costEdit.text()
 
     @cost.setter
     def cost(self, value):
-        self.__costEdit.setText(value)
+        self.costEdit.setText(value)
 
     @property
     def purchaseDate(self):
-        return self.__purchaseDate.date().toPyDate()
+        return self.purchaseDateEdit.date().toPyDate()
 
     @property
     def department(self):
-        return self.__departmentEdit.text()
-
-    @department.setter
-    def department(self, value):
-        self.__departmentEdit.setText(value)
+        return self.departmentCmb.currentText()
 
     @property
     def room(self):
-        return self.__roomEdit.text()
-
-    @room.setter
-    def room(self, value):
-        self.__roomEdit.setText(value)
-
-    @property
-    def receiveDate(self):
-        return self.__receiveDate.date().toPyDate()
+        return self.roomsCmb.currentText()
 
 
 class _Controller:
@@ -148,6 +149,17 @@ class _Controller:
         self._view.submitButton.clicked.connect(self._processSubmission)
         self._view.editButton.clicked.connect(self._processEditing)
         self._view.removeButton.clicked.connect(self._processErasing)
+        self._view.requireDepartments.connect(self._getDepartments)
+        self._view.requireRooms.connect(self._getRooms)
+        self._view.departmentCmb.activated.connect(self._getRooms)
+
+    def _getDepartments(self):
+        departments = sorted([x[0] for x in self._model.getDepartmentsShortNames()])
+        self._view.setDepartments(departments)
+
+    def _getRooms(self):
+        rooms = sorted([x[0] for x in self._model.getRoomsNames(self._view.department)])
+        self._view.setRooms(rooms)
 
     def _validate_id(self, id):
         if re.match('^[\d]{1,11}$', id):
@@ -155,7 +167,7 @@ class _Controller:
         return False
 
     def _validate_name(self, name):
-        if re.match('^[\w]{1,19}$', name):
+        if re.match('^[\w]{1,20}$', name):
             return True
         return False
 
@@ -170,12 +182,12 @@ class _Controller:
         return False
 
     def _validate_department(self, department):
-        if re.match('^[\w\-.]{0,5}$', department):
+        if re.match('^[\w\-.]{1,5}$', department):
             return True
         return False
 
     def _validate_room(self, room):
-        if re.match('^[\w]{0,5}$', room):
+        if re.match('^[\w]{1,5}$', room):
             return True
         return False
 
@@ -189,8 +201,7 @@ class _Controller:
                                                cost=self._view.cost,
                                                purcase_date=self._view.purchaseDate,
                                                department=self._view.department,
-                                               room=self._view.room,
-                                               receive_date=self._view.receiveDate)
+                                               room=self._view.room)
                 QMessageBox.information(None,
                                         'Information',
                                         'Successfully inserted')
@@ -203,10 +214,6 @@ class _Controller:
                 QMessageBox.information(None,
                                         'Information',
                                         'Could not save successfully')
-            except ComputerLocationError as error:
-                QMessageBox.information(None,
-                                        'Information',
-                                        error.message)
             except Exception: pass
         else:
             QMessageBox.information(None,
@@ -224,20 +231,20 @@ class _Controller:
                                              cost=self._view.cost,
                                              purcase_date=self._view.purchaseDate,
                                              department=self._view.department,
-                                             room=self._view.room,
-                                             receive_date=self._view.receiveDate)
+                                             room=self._view.room)
                 QMessageBox.information(None,
                                         'Information',
                                         'Successfully edited')
                 self._view.id = ''
+                self._view.name = ''
+                self._view.model = ''
+                self._view.cost = ''
+                self._view.department = ''
+                self._view.room = ''
             except mysql.Error:
                 QMessageBox.information(None,
                                         'Information',
                                         'Could not edit successfully')
-            except ComputerLocationError as error:
-                QMessageBox.information(None,
-                                        'Information',
-                                        error.message)
             except Exception: pass
 
         else:
@@ -263,16 +270,13 @@ class _Controller:
                                     'Information',
                                     'Something wrong with parameters')
 
-    def quitApp(self):
-        sys.exit(1)
-
 
 class _Model:
     def __init__(self):
         self.db = Connection()
         self.cursor = self.db.cursor
 
-    def insertTechnicsItem(self, name, model, cost, purcase_date, department, room, receive_date):
+    def insertTechnicsItem(self, name, model, cost, purcase_date, department, room):
         try:
             self.cursor.execute(
                 """
@@ -280,28 +284,28 @@ class _Model:
                   FROM company_orgtechnics.Rooms r 
                   INNER JOIN company_orgtechnics.Departments d
                     ON r.department_id = d.department_id
-                  WHERE d.short_name = '{0}' AND r.name = '{1}'
+                  WHERE d.short_name='{0}' AND r.name='{1}'
                 """.format(department, room))
             room_id = self.cursor.fetchall()
 
             if len(room_id) == 0:
-                raise ComputerLocationError('Room ' + department + '-' + str(room) + ' does not exists')
+                raise mysql.Error()
             else:
                 room_id = room_id[0][0]
 
             self.cursor.execute(
                 """
                 INSERT INTO company_orgtechnics.Computers 
-                  (comp_name,model,cost,purchase_date,room_id,receive_date) 
-                  VALUES('{0}','{1}',{2},'{3}',{4},'{5}')
-                """.format(name, model, cost, purcase_date, room_id, receive_date))
+                  (comp_name,model,cost,purchase_date,room_id) 
+                  VALUES('{0}','{1}',{2},'{3}',{4})
+                """.format(name, model, cost, purcase_date, room_id))
             self.db.commit()
         except mysql.Error as error:
             print "Error %d: %s" % (error.args[0], error.args[1])
             self.db.rollback()
             raise mysql.Error(error.args)
 
-    def editTechnicsItem(self, id, name, model, cost, purcase_date, department, room, receive_date):
+    def editTechnicsItem(self, id, name, model, cost, purcase_date, department, room):
         try:
             self.cursor.execute(
                 """
@@ -309,21 +313,21 @@ class _Model:
                   FROM company_orgtechnics.Rooms r 
                   INNER JOIN company_orgtechnics.Departments d
                     ON r.department_id = d.department_id
-                  WHERE d.short_name = '{0}' AND r.name = '{1}'
+                  WHERE d.short_name='{0}' AND r.name='{1}'
                 """.format(department, room))
             room_id = self.cursor.fetchall()
 
             if len(room_id) == 0:
-                raise ComputerLocationError('Room ' + department + '-' + str(room) + ' does not exists')
+                raise mysql.Error()
             else:
                 room_id = room_id[0][0]
 
             self.cursor.execute(
                 """
                 UPDATE company_orgtechnics.Computers 
-                SET comp_name='{1}',model='{2}',cost='{3}',purchase_date='{4}',room_id='{5}',receive_date='{6}' 
-                WHERE comp_id = '{0}'
-                """.format(id, name, model, cost, purcase_date, room_id, receive_date))
+                SET comp_name='{1}',model='{2}',cost='{3}',purchase_date='{4}',room_id='{5}' 
+                WHERE comp_id='{0}'
+                """.format(id, name, model, cost, purcase_date, room_id))
             self.db.commit()
         except mysql.Error as error:
             print "Error %d: %s" % (error.args[0], error.args[1])
@@ -336,7 +340,7 @@ class _Model:
             self.cursor.execute(
                 """
                 DELETE FROM company_orgtechnics.Computers
-                WHERE comp_id = '{0}'
+                WHERE comp_id='{0}'
                 """.format(id)
             )
             self.db.commit()
@@ -345,7 +349,32 @@ class _Model:
             self.db.rollback()
             raise mysql.Error(error.args)
 
+    def getDepartmentsShortNames(self):
+        try:
+            self.cursor.execute(
+                """
+                SELECT DISTINCT short_name
+                FROM company_orgtechnics.Departments
+                """
+            )
+            return self.cursor.fetchall()
+        except mysql.Error as error:
+            print "Error %d: %s" % (error.args[0], error.args[1])
+            self.db.rollback()
+            return list()
 
-class ComputerLocationError(Exception):
-    def __init__(self, message):
-        self.message = message
+    def getRoomsNames(self, department):
+        try:
+            self.cursor.execute(
+                """
+                SELECT DISTINCT name
+                FROM company_orgtechnics.Rooms INNER JOIN company_orgtechnics.Departments
+                  ON Rooms.department_id = Departments.department_id
+                WHERE short_name='{0}'
+                """.format(department)
+            )
+            return self.cursor.fetchall()
+        except mysql.Error as error:
+            print "Error %d: %s" % (error.args[0], error.args[1])
+            self.db.rollback()
+            raise mysql.Error(error.args)
